@@ -1,48 +1,48 @@
-# Clash Royale Screenshot Automation
+# 皇室战争自动化游戏
 
-This project automates screenshot capturing and processing for Clash Royale game.
+这是一个用于皇室战争游戏的自动化项目，包含截图捕获、图片处理和自动化测试功能。
 
-## Features
+## 功能特性
 
-- Automated screenshot capture
-- Image file management
-- Test scripts for image processing
+- 自动截图捕获
+- 图片文件管理
+- 图像处理测试脚本
 
-## Project Structure
+## 项目结构
 
 ```
-├── png/                 # Image resources organized by game states
-│   ├── 战斗中/          # In-battle screenshots
-│   ├── 战斗结束/        # Post-battle screenshots  
-│   ├── 战斗未开始/      # Pre-battle screenshots
-│   └── 开宝箱/          # Chest opening screenshots
-├── screenshot.py        # Main screenshot automation script
-├── test_image_files.py  # Test script for image file handling
-└── .gitignore           # Git ignore configuration
+├── png/                 # 按游戏状态分类的图片资源
+│   ├── 战斗中/          # 战斗中的截图
+│   ├── 战斗结束/        # 战斗结束后的截图  
+│   ├── 战斗未开始/      # 战斗开始前的截图
+│   └── 开宝箱/          # 开宝箱的截图
+├── screenshot.py        # 主要的截图自动化脚本
+├── test_image_files.py  # 图片文件处理测试脚本
+└── .gitignore           # Git忽略配置
 ```
 
-## Usage
+## 使用方法
 
-1. Ensure Python 3.8+ is installed
-2. Install dependencies:
+1. 确保安装了Python 3.8+
+2. 安装依赖：
    ```bash
    pip install -r requirements.txt
    ```
-3. Run the screenshot script:
+3. 运行截图脚本：
    ```bash
    python screenshot.py
    ```
-4. Run tests:
+4. 运行测试：
    ```bash
    python test_image_files.py
    ```
 
-## Technologies Used
+## 技术栈
 
 - Python 3
 - Git
-- Image processing libraries
+- 图像处理库
 
-## License
+## 许可证
 
 MIT
