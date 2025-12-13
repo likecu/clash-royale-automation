@@ -1,4 +1,5 @@
-import pyautogui
+import subprocess
+import time
 from config.config import BUTTON_CONFIG
 
 class ActionExecutor:
@@ -27,6 +28,30 @@ class ActionExecutor:
             print(f"未知状态: {status}，无对应行为")
             return False
     
+    def click_with_cliclick(self, x, y):
+        """使用cliclick模拟点击"""
+        try:
+            # 1. 先激活微信窗口
+            applescript = '''tell application "WeChat"
+    activate
+    delay 0.5
+end tell'''
+            subprocess.run(["osascript", "-e", applescript], check=True, capture_output=True, text=True)
+            
+            # 2. 等待一下确保界面稳定
+            time.sleep(0.5)
+            
+            # 3. 移动鼠标到位置
+            subprocess.run(["cliclick", f"m:{x},{y}"], check=True, capture_output=True, text=True)
+            time.sleep(0.5)
+            
+            # 4. 执行点击
+            subprocess.run(["cliclick", f"c:{x},{y}"], check=True, capture_output=True, text=True)
+            return True
+        except Exception as e:
+            print(f"  ✗ 点击失败: {e}")
+            return False
+    
     def action_battle_not_started(self):
         """战斗未开始状态的行为"""
         print("[智能行为] 战斗未开始 - 可以点击对战按钮开始战斗")
@@ -34,8 +59,7 @@ class ActionExecutor:
         if "对战按钮" in self.button_positions["战斗未开始"]:
             button_pos = self.button_positions["战斗未开始"]["对战按钮"]
             print(f"  点击位置: {button_pos}")
-            pyautogui.click(button_pos[0], button_pos[1])  # 执行实际点击
-            return True
+            return self.click_with_cliclick(button_pos[0], button_pos[1])  # 执行实际点击
         return False
     
     def action_battle_in_progress(self):
@@ -52,8 +76,7 @@ class ActionExecutor:
         if "确认按钮" in self.button_positions["战斗结束"]:
             button_pos = self.button_positions["战斗结束"]["确认按钮"]
             print(f"  点击位置: {button_pos}")
-            # pyautogui.click(button_pos[0], button_pos[1])  # 取消注释以执行实际点击
-            return True
+            return self.click_with_cliclick(button_pos[0], button_pos[1])  # 执行实际点击
         return False
     
     def action_opening_chest(self):
@@ -63,6 +86,5 @@ class ActionExecutor:
         if "开宝箱按钮" in self.button_positions["开宝箱"]:
             button_pos = self.button_positions["开宝箱"]["开宝箱按钮"]
             print(f"  点击位置: {button_pos}")
-            # pyautogui.click(button_pos[0], button_pos[1])  # 取消注释以执行实际点击
-            return True
+            return self.click_with_cliclick(button_pos[0], button_pos[1])  # 执行实际点击
         return False
