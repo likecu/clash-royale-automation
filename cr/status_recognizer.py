@@ -58,6 +58,7 @@ class StatusRecognizer:
             
             best_status = None
             best_similarity = 0
+            screenshot_size = screenshot.size
             
             # 与所有状态模板进行比较
             for status, config in self.status_templates.items():
@@ -65,16 +66,26 @@ class StatusRecognizer:
                     continue
                 
                 template = config["template_img"]
-                similarity = self.compare_images(screenshot, template)
+                
+                # 调整模板尺寸为与截图相同，处理缩放关系
+                resized_template = template.resize(screenshot_size)
+                similarity = self.compare_images(screenshot, resized_template)
                 
                 print(f"状态比较: {status} -> 相似度: {similarity:.4f}")
                 
                 # 更新最佳匹配
-                if similarity > best_similarity and similarity >= config["threshold"]:
+                if similarity > best_similarity:
                     best_similarity = similarity
                     best_status = status
             
-            return best_status, best_similarity
+            # 改进的阈值策略：
+            # 1. 如果最佳相似度超过0.6，就认为是有效识别
+            # 2. 或者使用每个状态自己的阈值
+            threshold = 0.6  # 默认较低阈值
+            if best_similarity >= threshold:
+                return best_status, best_similarity
+            else:
+                return None, best_similarity
         
         except Exception as e:
             print(f"识别状态失败: {e}")

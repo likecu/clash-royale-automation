@@ -120,25 +120,25 @@ class ScreenStatusRecognizer:
         """战斗未开始状态的行为"""
         print("[行为] 战斗未开始 - 可以点击对战按钮开始战斗")
         # 这里可以添加具体的操作，比如点击对战按钮
-        # 示例：pyautogui.click(x=100, y=200)  # 假设对战按钮在这个位置
+        # 示例：使用ClickManager执行点击
     
     def action_battle_in_progress(self):
         """战斗中状态的行为"""
         print("[行为] 战斗进行中 - 可以发送表情或执行战斗操作")
         # 示例：发送表情
-        # pyautogui.click(x=300, y=400)  # 假设表情按钮在这个位置
+        # 使用ClickManager执行点击
     
     def action_battle_ended(self):
         """战斗结束状态的行为"""
         print("[行为] 战斗结束 - 可以点击确认按钮返回")
         # 示例：点击确认按钮
-        # pyautogui.click(x=500, y=600)  # 假设确认按钮在这个位置
+        # 使用ClickManager执行点击
     
     def action_opening_chest(self):
         """开宝箱状态的行为"""
         print("[行为] 开宝箱中 - 可以点击开宝箱按钮")
         # 示例：点击开宝箱按钮
-        # pyautogui.click(x=700, y=800)  # 假设开宝箱按钮在这个位置
+        # 使用ClickManager执行点击
     
     def process_screenshot(self, screenshot_path):
         """处理截图：识别状态并执行行为"""

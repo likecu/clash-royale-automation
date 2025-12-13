@@ -1,4 +1,3 @@
-import pyautogui
 import subprocess
 import time
 import os
@@ -78,15 +77,30 @@ end tell'''
             
             # 3. 截取WeApp区域
             print(f"正在截取WeApp区域: {self.weapp_region}")
-            screenshot = pyautogui.screenshot(region=self.weapp_region)
             
             # 4. 保存截图文件
             filename = os.path.join(self.screenshot_dir, self.get_timestamp_filename(prefix))
-            screenshot.save(filename)
+            
+            # 使用screencapture命令截图
+            x, y, width, height = self.weapp_region
+            screencapture_cmd = ["screencapture", "-R", f"{x},{y},{width},{height}", filename]
+            subprocess.run(screencapture_cmd, check=True, capture_output=True, text=True)
+            
+            # 检查截图是否成功生成
+            if not os.path.exists(filename):
+                raise Exception(f"截图文件未生成: {filename}")
             
             print(f"✓ 成功截取WeApp界面，保存为: {filename}")
             print(f"  文件大小: {os.path.getsize(filename)} 字节")
-            print(f"  截图尺寸: {screenshot.size}")
+            
+            # 获取截图尺寸
+            try:
+                from PIL import Image
+                with Image.open(filename) as img:
+                    screenshot_size = img.size
+                    print(f"  截图尺寸: {screenshot_size}")
+            except Exception as e:
+                print(f"  获取截图尺寸失败: {e}")
             
             return filename
         except Exception as e:

@@ -96,13 +96,17 @@ BUTTON_CONFIG = {
 ### 依赖库
 - Pillow: 图片处理
 - numpy: 数值计算
-- pyautogui: 屏幕操作
+- cliclick: 屏幕点击操作（Mac系统原生工具）
 
 ### 安装方法
 使用虚拟环境Python安装依赖：
 ```bash
-/Volumes/600g/app1/okx-py/bin/python3 -m pip install pillow numpy pyautogui
+/Volumes/600g/app1/okx-py/bin/python3 -m pip install pillow numpy
 ```
+
+### 系统工具依赖
+- cliclick: Mac系统下的命令行点击工具，用于执行鼠标操作
+  - 安装方法：`brew install cliclick`
 
 ## 使用方法
 
