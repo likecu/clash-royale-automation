@@ -31,20 +31,17 @@ class ScreenshotManager:
         try:
             print("正在将微信窗口前置...")
             
-            # 使用AppleScript将微信窗口前置
-            applescript = f'''tell application "System Events" to tell process "{self.wechat_process_name}"
-    set frontmost to true
+            # 使用更简单的AppleScript将微信窗口前置
+            applescript = '''tell application "WeChat"
+    activate
     delay 0.5
-    if exists window 1 then
-        set index of window 1 to 1
-    end if
 end tell'''
             
             subprocess.run(["osascript", "-e", applescript], check=True, capture_output=True, text=True)
             print("✓ 成功将微信窗口前置")
             return True
-        except subprocess.CalledProcessError:
-            print(f"✗ 未找到{self.wechat_process_name}进程")
+        except subprocess.CalledProcessError as e:
+            print(f"✗ 未找到WeChat应用: {e}")
             return False
         except Exception as e:
             print(f"✗ 将微信窗口前置失败: {e}")

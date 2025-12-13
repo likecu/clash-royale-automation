@@ -34,7 +34,7 @@ class ActionExecutor:
         if "对战按钮" in self.button_positions["战斗未开始"]:
             button_pos = self.button_positions["战斗未开始"]["对战按钮"]
             print(f"  点击位置: {button_pos}")
-            # pyautogui.click(button_pos[0], button_pos[1])  # 取消注释以执行实际点击
+            pyautogui.click(button_pos[0], button_pos[1])  # 执行实际点击
             return True
         return False
     
