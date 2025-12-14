@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw
 import os
-import numpy as np
 from config.config import BUTTON_MARK_CONFIG, DOUBAO_OCR_CONFIG
+from cr.utils import ImageUtils
 
 class ButtonMarker:
     """按钮标记器，用于在界面中标记按钮位置"""
@@ -12,37 +12,6 @@ class ButtonMarker:
         self.png_dir = self.config["png_dir"]
         self.scenes = self.config["scenes"]
         self.scene_configs = self.config["scene_configs"]
-    
-    def find_button_position(self, interface_img, button_img):
-        """使用模板匹配找到按钮在界面中的位置"""
-        # 将图片转换为numpy数组
-        interface_np = np.array(interface_img)
-        button_np = np.array(button_img)
-        
-        # 获取界面和按钮的尺寸
-        interface_h, interface_w, _ = interface_np.shape
-        button_h, button_w, _ = button_np.shape
-        
-        # 计算需要遍历的区域
-        h_search = interface_h - button_h
-        w_search = interface_w - button_w
-        
-        best_match = (0, 0)
-        min_diff = float('inf')
-        
-        # 遍历界面，寻找与按钮最匹配的区域
-        for y in range(0, h_search, 5):  # 步长为5，加快搜索速度
-            for x in range(0, w_search, 5):
-                # 截取当前区域
-                region = interface_np[y:y+button_h, x:x+button_w, :]
-                # 计算与按钮的差异
-                diff = np.sum(np.abs(region - button_np))
-                # 更新最佳匹配
-                if diff < min_diff:
-                    min_diff = diff
-                    best_match = (x, y)
-        
-        return best_match
     
     def mark_button(self, scene):
         """标记指定场景的按钮位置"""
@@ -63,7 +32,7 @@ class ButtonMarker:
         button_img = Image.open(button_path)
         
         # 找到按钮位置
-        button_x, button_y = self.find_button_position(interface_img, button_img)
+        button_x, button_y = ImageUtils.find_button_position(interface_img, button_img)
         
         # 在界面图上标记按钮位置
         draw = ImageDraw.Draw(interface_img)

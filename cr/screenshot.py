@@ -3,6 +3,7 @@ import time
 import os
 from config.config import SCREENSHOT_CONFIG, DOUBAO_OCR_CONFIG
 from cr.click_manager import ClickManager
+from cr.utils import WeChatUtils, SystemUtils
 
 # OCR配置
 OCR_SCRIPT = DOUBAO_OCR_CONFIG.get("ocr_script_path", "/Volumes/600g/app1/doubao获取/python/doubao_ocr.py")
@@ -32,38 +33,15 @@ class ScreenshotManager:
         """根据系统返回的微信窗口位置计算weapp绝对区域"""
         try:
             # 激活微信窗口，确保能获取到正确的窗口信息
-            activate_script = '''tell application "WeChat"
-    activate
-    delay 0.1
-end tell'''
-            subprocess.run(["osascript", "-e", activate_script], check=True, capture_output=True, text=True)
+            WeChatUtils.bring_wechat_to_front()
             time.sleep(0.1)
             
-            # 使用System Events获取微信窗口的实际位置
-            position_script = '''tell application "System Events"
-    tell process "WeChat"
-        get position of window 1
-    end tell
-end tell'''
-            position_result = subprocess.run(["osascript", "-e", position_script], check=True, capture_output=True, text=True)
-            
-            # 解析位置结果，格式为 {x, y}
-            position = position_result.stdout.strip().replace("{", "").replace("}", "").split(", ")
-            wx_x = int(position[0])
-            wx_y = int(position[1])
-            
-            # 从系统获取微信窗口的大小
-            size_script = '''tell application "System Events"
-    tell process "WeChat"
-        get size of window 1
-    end tell
-end tell'''
-            size_result = subprocess.run(["osascript", "-e", size_script], check=True, capture_output=True, text=True)
-            
-            # 解析大小结果，格式为 {width, height}
-            size = size_result.stdout.strip().replace("{", "").replace("}", "").split(", ")
-            wx_width = int(size[0])
-            wx_height = int(size[1])
+            # 获取微信窗口位置和大小
+            wx_window = WeChatUtils.get_wechat_window_position()
+            wx_x = wx_window["x"]
+            wx_y = wx_window["y"]
+            wx_width = wx_window["width"]
+            wx_height = wx_window["height"]
             
             # 动态计算小程序相对区域（假设小程序占据微信窗口的主要内容区域）
             # 这里使用微信窗口的实际大小来计算小程序区域
@@ -98,62 +76,32 @@ end tell'''
     def set_screenshot_dir(self, dir_path):
         """设置截图保存目录"""
         self.screenshot_dir = dir_path
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
+        SystemUtils.ensure_dir_exists(dir_path)
     
     def get_timestamp_filename(self, prefix=None):
         """生成带时间戳的文件名"""
         if prefix is None:
             prefix = self.config["prefix"]
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        return f"{prefix}_{timestamp}.png"
+        return SystemUtils.get_timestamp_filename(prefix)
     
     def bring_wechat_to_front(self):
         """使用AppleScript将微信窗口置顶并移动到指定位置"""
         try:
             print("正在将微信窗口置顶...")
             
-            # 使用默认窗口位置
-            window_pos = (400, 100)
-            
-            # 使用AppleScript，只将微信置顶，不移动位置
-            applescript = f'''tell application "System Events"
-    # 确保WeChat进程存在
-    if exists process "WeChat" then
-        # 强制将微信置顶
-        tell process "WeChat"
-            set frontmost to true
-            delay 0.5
-            # 确保至少有一个窗口
-            if not (exists window 1) then
-                # 尝试打开微信窗口
-                try
-                    click menu item 1 of menu 1 of menu bar item "文件" of menu bar 1
-                    delay 1
-                end try
-            end if
-            
-            # 确保窗口不是最大化状态
-            set zoomed of window 1 to false
-            delay 0.3
-        end tell
-        return true
-    else
-        return false
-    end if
-end tell'''
-            
-            result = subprocess.run(["osascript", "-e", applescript], capture_output=True, text=True)
-            
-            if "true" in result.stdout:
+            # 使用WeChatUtils将微信窗口置顶
+            if WeChatUtils.bring_wechat_to_front():
                 print("✓ 成功将微信窗口置顶")
                 # 重新计算weapp_region，确保截图区域正确
                 self.weapp_region = self._calculate_absolute_weapp_region()
                 print(f"  已更新weapp_region为: {self.weapp_region}")
                 return True
+            else:
+                print("✗ 无法将微信窗口置顶")
+                return False
         except Exception as e:
             print(f"✗ 将微信窗口置顶失败: {e}")
-            return True
+            return False
     
     def is_clash_royale_screen(self, screenshot_path):
         """使用OCR验证截图是否为皇室战争界面"""

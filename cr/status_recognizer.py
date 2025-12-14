@@ -1,7 +1,7 @@
 from PIL import Image
-import numpy as np
 import os
 from config.config import STATUS_RECOGNITION_CONFIG
+from cr.utils import ImageUtils
 
 class StatusRecognizer:
     """屏幕状态识别器，用于判断当前截图属于什么状态"""
@@ -57,75 +57,6 @@ class StatusRecognizer:
                 print(f"  错误信息: {e}")
                 self.button_templates[status] = None
     
-    def preprocess_image(self, img):
-        """图片预处理：转换为灰度图并进行简单降噪"""
-        # 转换为灰度图
-        img_gray = img.convert("L")
-        return img_gray
-    
-    def simple_template_matching(self, screenshot, template):
-        """简单高效的模板匹配算法"""
-        # 将图片转换为numpy数组
-        screenshot_np = np.array(screenshot)
-        template_np = np.array(template)
-        
-        screenshot_h, screenshot_w = screenshot_np.shape
-        template_h, template_w = template_np.shape
-        
-        # 调整模板尺寸与截图完全相同
-        template_img = Image.fromarray(template_np)
-        resized_template = template_img.resize((screenshot_w, screenshot_h))
-        resized_template_np = np.array(resized_template)
-        
-        # 计算图片差异
-        diff = np.abs(screenshot_np - resized_template_np)
-        # 计算差异比例
-        diff_ratio = np.sum(diff) / (diff.size * 255)
-        # 转换为相似度
-        similarity = 1 - diff_ratio
-        
-        return similarity
-    
-    def button_template_matching(self, screenshot, button_template):
-        """专门用于按钮识别的模板匹配算法"""
-        # 将图片转换为numpy数组
-        screenshot_np = np.array(screenshot)
-        button_np = np.array(button_template)
-        
-        screenshot_h, screenshot_w = screenshot_np.shape
-        button_h, button_w = button_np.shape
-        
-        # 如果按钮尺寸大于截图尺寸，调整按钮尺寸
-        if button_h > screenshot_h or button_w > screenshot_w:
-            return 0.0
-        
-        best_similarity = 0.0
-        
-        # 在截图中滑动按钮模板，寻找最佳匹配
-        # 只在可能出现按钮的区域搜索，减少计算量
-        search_region_h = screenshot_h - button_h + 1
-        search_region_w = screenshot_w - button_w + 1
-        
-        # 只搜索屏幕下半部分，因为对战按钮通常在底部
-        start_y = int(search_region_h * 0.5)
-        end_y = search_region_h
-        
-        for y in range(start_y, end_y, 5):  # 步长为5，减少计算量
-            for x in range(0, search_region_w, 5):  # 步长为5，减少计算量
-                # 截取当前窗口
-                window = screenshot_np[y:y+button_h, x:x+button_w]
-                
-                # 计算差异
-                diff = np.abs(window - button_np)
-                diff_ratio = np.sum(diff) / (diff.size * 255)
-                similarity = 1 - diff_ratio
-                
-                # 更新最佳相似度
-                if similarity > best_similarity:
-                    best_similarity = similarity
-        
-        return best_similarity
-    
     def check_status_button(self, screenshot_gray, status):
         """检查截图中是否存在指定状态的按钮"""
         if status not in self.button_templates or not self.button_templates[status]:
@@ -134,39 +65,16 @@ class StatusRecognizer:
         
         # 使用专门的按钮模板匹配算法检查对应状态的按钮
         button_template = self.button_templates[status]
-        button_similarity = self.button_template_matching(screenshot_gray, button_template)
+        button_similarity = ImageUtils.button_template_matching(screenshot_gray, button_template)
         print(f"  {status}按钮相似度: {button_similarity:.4f}")
         return button_similarity
-    
-    def compare_images(self, img1, img2):
-        """比较两张图片的相似度，返回0-1之间的值，1表示完全相同"""
-        # 将图片转换为numpy数组
-        np1 = np.array(img1)
-        np2 = np.array(img2)
-        
-        # 调整图片尺寸，确保它们大小相同
-        if np1.shape != np2.shape:
-            # 取较小的尺寸进行比较
-            min_h = min(np1.shape[0], np2.shape[0])
-            min_w = min(np1.shape[1], np2.shape[1])
-            np1 = np1[:min_h, :min_w]
-            np2 = np2[:min_h, :min_w]
-        
-        # 计算像素差异
-        diff = np.abs(np1 - np2)
-        total_diff = np.sum(diff)
-        max_diff = np1.size * 255  # 最大可能差异
-        
-        # 计算相似度（0-1）
-        similarity = 1 - (total_diff / max_diff)
-        return similarity
     
     def recognize_status(self, screenshot_path):
         """识别当前截图的状态"""
         try:
             # 打开并预处理截图
             screenshot = Image.open(screenshot_path)
-            screenshot_gray = self.preprocess_image(screenshot)
+            screenshot_gray = ImageUtils.preprocess_image(screenshot)
             
             best_status = None
             best_similarity = 0
@@ -211,7 +119,7 @@ class StatusRecognizer:
                 template = config["template_img"]
                 
                 # 使用简单模板匹配算法获取页面相似度
-                page_similarity = self.simple_template_matching(screenshot_gray, template)
+                page_similarity = ImageUtils.simple_template_matching(screenshot_gray, template)
                 
                 # 综合考虑页面相似度和按钮相似度，按钮权重更高
                 button_similarity = button_similarities[status]

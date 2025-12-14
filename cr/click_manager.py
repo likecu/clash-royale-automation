@@ -2,6 +2,7 @@ import subprocess
 import time
 import os
 from config.config import SCREENSHOT_CONFIG
+from cr.utils import WeChatUtils
 
 class ClickManager:
     """点击管理器，封装点击操作并进行边界检查"""
@@ -17,42 +18,16 @@ class ClickManager:
         """获取皇室战争的窗口区域，格式为(x, y, width, height)"""
         try:
             # 激活微信窗口
-            activate_script = '''tell application "WeChat"
-    activate
-    delay 0.1
-end tell'''
-            subprocess.run(["osascript", "-e", activate_script], check=True, capture_output=True, text=True)
+            WeChatUtils.bring_wechat_to_front()
             time.sleep(0.1)
             
-            # 使用System Events获取微信窗口的位置
-            position_script = '''tell application "System Events"
-    tell process "WeChat"
-        get position of window 1
-    end tell
-end tell'''
-            position_result = subprocess.run(["osascript", "-e", position_script], check=True, capture_output=True, text=True)
-            
-            # 解析位置结果，格式为 {x, y}
-            position = position_result.stdout.strip().replace("{", "").replace("}", "").split(", ")
-            wx_x = int(position[0])
-            wx_y = int(position[1])
-            
-            # 从系统获取微信窗口的大小
-            size_script = '''tell application "System Events"
-    tell process "WeChat"
-        get size of window 1
-    end tell
-end tell'''
-            size_result = subprocess.run(["osascript", "-e", size_script], check=True, capture_output=True, text=True)
-            
-            # 解析大小结果，格式为 {width, height}
-            size = size_result.stdout.strip().replace("{", "").replace("}", "").split(", ")
-            wx_width = int(size[0])
-            wx_height = int(size[1])
+            # 获取微信窗口位置和大小
+            wx_window = WeChatUtils.get_wechat_window_position()
+            wx_x = wx_window["x"]
+            wx_y = wx_window["y"]
             
             # 从配置文件获取皇室战争小程序在微信窗口内的相对区域
-            from config.config import SCREENSHOT_CONFIG
-            weapp_relative_region = SCREENSHOT_CONFIG["weapp_relative_region"]
+            weapp_relative_region = self.config["weapp_relative_region"]
             rel_x, rel_y, rel_width, rel_height = weapp_relative_region
             
             # 动态计算皇室战争小程序的绝对区域
@@ -67,8 +42,7 @@ end tell'''
             print(f"获取微信窗口信息失败: {e}")
             # 如果获取失败，使用默认值
             wx_x, wx_y = (400, 100)  # 默认窗口位置
-            from config.config import SCREENSHOT_CONFIG
-            weapp_relative_region = SCREENSHOT_CONFIG["weapp_relative_region"]
+            weapp_relative_region = self.config["weapp_relative_region"]
             rel_x, rel_y, rel_width, rel_height = weapp_relative_region
             # 使用默认窗口位置和配置的相对区域
             return (wx_x + rel_x, wx_y + rel_y, rel_width, rel_height)
