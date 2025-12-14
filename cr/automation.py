@@ -18,8 +18,13 @@ class CRGameAutomation:
         # 按钮位置配置
         self.button_positions = BUTTON_CONFIG
     
-    def capture_and_analyze(self, prefix="weapp_auto"):
-        """截取屏幕并分析状态，执行相应行为"""
+    def capture_and_analyze(self, prefix="weapp_auto", execute_action=False):
+        """截取屏幕并分析状态，可选择执行相应行为
+        
+        参数:
+            prefix: 截图文件名前缀
+            execute_action: 是否执行相应行为，默认不执行
+        """
         print("\n===== 开始捕获并分析屏幕 =====")
         
         # 1. 截取屏幕
@@ -33,8 +38,9 @@ class CRGameAutomation:
         
         if status:
             print(f"✓ 成功识别状态: {status} (相似度: {similarity:.4f})")
-            # 3. 执行相应行为
-            self.execute_smart_action(status, screenshot_path)
+            # 3. 执行相应行为（如果execute_action为True）
+            if execute_action:
+                self.execute_smart_action(status, screenshot_path)
         else:
             print(f"✗ 无法识别状态 (最高相似度: {similarity:.4f})")
         

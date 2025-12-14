@@ -8,22 +8,22 @@ class ScreenStatusRecognizer:
     def __init__(self):
         self.status_templates = {
             "战斗未开始": {
-                "template_path": "png/战斗未开始/初始页面.png",
+                "template_path": "png/战斗未开始/",
                 "threshold": 0.8,  # 匹配阈值，0-1之间，值越高匹配度要求越高
                 "action": self.action_battle_not_started
             },
             "战斗中": {
-                "template_path": "png/战斗中/对战界面.png",
+                "template_path": "png/战斗中/",
                 "threshold": 0.8,
                 "action": self.action_battle_in_progress
             },
             "战斗结束": {
-                "template_path": "png/战斗结束/战斗结束页面.png",
+                "template_path": "png/战斗结束/",
                 "threshold": 0.8,
                 "action": self.action_battle_ended
             },
             "开宝箱": {
-                "template_path": "png/开宝箱/开宝箱界面.png",
+                "template_path": "png/开宝箱/",
                 "threshold": 0.8,
                 "action": self.action_opening_chest
             }
@@ -37,11 +37,22 @@ class ScreenStatusRecognizer:
         print("加载状态模板...")
         for status, config in self.status_templates.items():
             try:
-                template_img = Image.open(config["template_path"])
-                # 转换为RGB模式，确保一致性
-                template_img = template_img.convert("RGB")
-                self.status_templates[status]["template_img"] = template_img
-                print(f"✓ 成功加载模板: {status} -> {config['template_path']}")
+                template_folder = config["template_path"]
+                template_imgs = []
+                
+                # 遍历文件夹下的所有文件
+                for filename in os.listdir(template_folder):
+                    # 只处理图片文件
+                    if filename.endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                        file_path = os.path.join(template_folder, filename)
+                        template_img = Image.open(file_path)
+                        # 转换为RGB模式，确保一致性
+                        template_img = template_img.convert("RGB")
+                        template_imgs.append(template_img)
+                        print(f"  ✓ 成功加载模板: {status} -> {file_path}")
+                
+                self.status_templates[status]["template_imgs"] = template_imgs
+                print(f"✓ 完成加载状态模板: {status} -> 共 {len(template_imgs)} 个模板")
             except Exception as e:
                 print(f"✗ 加载模板失败: {status} -> {config['template_path']}")
                 print(f"  错误信息: {e}")
@@ -81,17 +92,27 @@ class ScreenStatusRecognizer:
             
             # 与所有状态模板进行比较
             for status, config in self.status_templates.items():
-                if "template_img" not in config:
+                if "template_imgs" not in config:
                     continue
                 
-                template = config["template_img"]
-                similarity = self.compare_images(screenshot, template)
+                # 获取该状态下的所有模板
+                template_imgs = config["template_imgs"]
+                status_max_similarity = 0
                 
-                print(f"状态比较: {status} -> 相似度: {similarity:.4f}")
+                # 遍历该状态下的所有模板
+                for i, template in enumerate(template_imgs):
+                    similarity = self.compare_images(screenshot, template)
+                    print(f"状态比较: {status} -> 模板{i+1}/{len(template_imgs)} -> 相似度: {similarity:.4f}")
+                    
+                    # 更新该状态下的最高相似度
+                    if similarity > status_max_similarity:
+                        status_max_similarity = similarity
                 
-                # 更新最佳匹配
-                if similarity > best_similarity and similarity >= config["threshold"]:
-                    best_similarity = similarity
+                print(f"状态比较: {status} -> 最高相似度: {status_max_similarity:.4f}")
+                
+                # 更新全局最佳匹配
+                if status_max_similarity > best_similarity and status_max_similarity >= config["threshold"]:
+                    best_similarity = status_max_similarity
                     best_status = status
             
             return best_status, best_similarity

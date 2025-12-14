@@ -50,20 +50,28 @@ end tell'''
             wx_width = int(size[0])
             wx_height = int(size[1])
             
+            # 从配置文件获取皇室战争小程序在微信窗口内的相对区域
+            from config.config import SCREENSHOT_CONFIG
+            weapp_relative_region = SCREENSHOT_CONFIG["weapp_relative_region"]
+            rel_x, rel_y, rel_width, rel_height = weapp_relative_region
+            
             # 动态计算皇室战争小程序的绝对区域
-            abs_x = wx_x  # 使用微信窗口的实际x坐标
-            abs_y = wx_y  # 使用微信窗口的实际y坐标
-            width = wx_width  # 使用微信窗口的实际宽度
-            height = wx_height  # 使用微信窗口的实际高度
+            # 微信窗口左上角为基准点，加上小程序在微信窗口内的相对位置
+            abs_x = wx_x + rel_x
+            abs_y = wx_y + rel_y
+            width = rel_width
+            height = rel_height
             
             return (abs_x, abs_y, width, height)
         except Exception as e:
             print(f"获取微信窗口信息失败: {e}")
             # 如果获取失败，使用默认值
             wx_x, wx_y = (400, 100)  # 默认窗口位置
-            wx_width, wx_height = (800, 600)  # 默认窗口大小
-            # 直接使用微信窗口的默认大小
-            return (wx_x, wx_y, wx_width, wx_height)
+            from config.config import SCREENSHOT_CONFIG
+            weapp_relative_region = SCREENSHOT_CONFIG["weapp_relative_region"]
+            rel_x, rel_y, rel_width, rel_height = weapp_relative_region
+            # 使用默认窗口位置和配置的相对区域
+            return (wx_x + rel_x, wx_y + rel_y, rel_width, rel_height)
     
     def update_cr_window_region(self):
         """更新皇室战争窗口区域"""
@@ -141,12 +149,35 @@ end tell'''
         
         return True, ""
     
+    def _convert_percentage_to_absolute(self, x, y):
+        """将百分比坐标转换为绝对坐标
+        
+        Args:
+            x: 百分比x坐标 (0-100) 或绝对x坐标
+            y: 百分比y坐标 (0-100) 或绝对y坐标
+            
+        Returns:
+            tuple: (绝对x坐标, 绝对y坐标)
+        """
+        # 判断是否为百分比坐标（如果x或y在0-100范围内）
+        if 0 <= x <= 100 and 0 <= y <= 100:
+            print(f"  检测到百分比坐标: ({x}%, {y}%)")
+            # 获取皇室战争窗口区域
+            cr_x, cr_y, cr_width, cr_height = self.cr_window_region
+            # 转换为绝对坐标
+            abs_x = cr_x + (x / 100) * cr_width
+            abs_y = cr_y + (y / 100) * cr_height
+            return (int(abs_x), int(abs_y))
+        else:
+            # 已经是绝对坐标
+            return (x, y)
+    
     def click(self, x, y):
         """执行点击操作
         
         Args:
-            x: 点击的x坐标
-            y: 点击的y坐标
+            x: 点击的x坐标（可以是绝对坐标或百分比坐标）
+            y: 点击的y坐标（可以是绝对坐标或百分比坐标）
             
         Returns:
             bool: 是否点击成功
@@ -154,8 +185,13 @@ end tell'''
         print(f"\n=== 执行点击操作 ===")
         print(f"请求点击位置: ({x}, {y})")
         
+        # 将百分比坐标转换为绝对坐标
+        abs_x, abs_y = self._convert_percentage_to_absolute(x, y)
+        if (abs_x, abs_y) != (x, y):
+            print(f"  转换为绝对坐标: ({abs_x}, {abs_y})")
+        
         # 检查点击位置
-        is_valid, error_msg = self.check_click_position(x, y)
+        is_valid, error_msg = self.check_click_position(abs_x, abs_y)
         if not is_valid:
             print(f"✗ 点击失败: {error_msg}")
             return False
@@ -170,14 +206,14 @@ end tell'''
             time.sleep(0.1)
             
             # 只使用cliclick执行点击
-            print(f"  使用cliclick点击位置: ({x}, {y})")
+            print(f"  使用cliclick点击位置: ({abs_x}, {abs_y})")
             # 移动鼠标
-            subprocess.run(["cliclick", f"m:{x},{y}"], check=True, capture_output=True, text=True)
+            subprocess.run(["cliclick", f"m:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
             time.sleep(0.1)
             # 执行点击
-            subprocess.run(["cliclick", f"c:{x},{y}"], check=True, capture_output=True, text=True)
+            subprocess.run(["cliclick", f"c:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
             
-            print(f"✓ 点击成功: ({x}, {y})")
+            print(f"✓ 点击成功: ({abs_x}, {abs_y})")
             return True
         except Exception as e:
             print(f"✗ 点击执行失败: {e}")
@@ -187,8 +223,8 @@ end tell'''
         """带重试机制的点击操作
         
         Args:
-            x: 点击的x坐标
-            y: 点击的y坐标
+            x: 点击的x坐标（可以是绝对坐标或百分比坐标）
+            y: 点击的y坐标（可以是绝对坐标或百分比坐标）
             retry_count: 重试次数
             interval: 重试间隔（秒）
             
@@ -207,8 +243,8 @@ end tell'''
         """执行双击操作
         
         Args:
-            x: 点击的x坐标
-            y: 点击的y坐标
+            x: 点击的x坐标（可以是绝对坐标或百分比坐标）
+            y: 点击的y坐标（可以是绝对坐标或百分比坐标）
             
         Returns:
             bool: 是否点击成功
@@ -216,8 +252,13 @@ end tell'''
         print(f"\n=== 执行双击操作 ===")
         print(f"请求双击位置: ({x}, {y})")
         
+        # 将百分比坐标转换为绝对坐标
+        abs_x, abs_y = self._convert_percentage_to_absolute(x, y)
+        if (abs_x, abs_y) != (x, y):
+            print(f"  转换为绝对坐标: ({abs_x}, {abs_y})")
+        
         # 检查点击位置
-        is_valid, error_msg = self.check_click_position(x, y)
+        is_valid, error_msg = self.check_click_position(abs_x, abs_y)
         if not is_valid:
             print(f"✗ 双击失败: {error_msg}")
             return False
@@ -232,10 +273,10 @@ end tell'''
             time.sleep(0.1)
             
             # 只使用cliclick执行双击
-            print(f"  使用cliclick双击位置: ({x}, {y})")
-            subprocess.run(["cliclick", f"dc:{x},{y}"], check=True, capture_output=True, text=True)
+            print(f"  使用cliclick双击位置: ({abs_x}, {abs_y})")
+            subprocess.run(["cliclick", f"dc:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
             
-            print(f"✓ 双击成功: ({x}, {y})")
+            print(f"✓ 双击成功: ({abs_x}, {abs_y})")
             return True
         except Exception as e:
             print(f"✗ 双击执行失败: {e}")
@@ -245,8 +286,8 @@ end tell'''
         """移动鼠标到指定位置
         
         Args:
-            x: 目标x坐标
-            y: 目标y坐标
+            x: 目标x坐标（可以是绝对坐标或百分比坐标）
+            y: 目标y坐标（可以是绝对坐标或百分比坐标）
             duration: 移动持续时间（秒）
             
         Returns:
@@ -255,8 +296,13 @@ end tell'''
         print(f"\n=== 执行鼠标移动操作 ===")
         print(f"请求移动到位置: ({x}, {y})")
         
+        # 将百分比坐标转换为绝对坐标
+        abs_x, abs_y = self._convert_percentage_to_absolute(x, y)
+        if (abs_x, abs_y) != (x, y):
+            print(f"  转换为绝对坐标: ({abs_x}, {abs_y})")
+        
         # 检查目标位置
-        is_valid, error_msg = self.check_click_position(x, y)
+        is_valid, error_msg = self.check_click_position(abs_x, abs_y)
         if not is_valid:
             print(f"✗ 鼠标移动失败: {error_msg}")
             return False
@@ -271,11 +317,11 @@ end tell'''
             time.sleep(0.1)
             
             # 使用cliclick移动鼠标，-e参数指定持续时间（毫秒）
-            print(f"  移动鼠标到: ({x}, {y})")
+            print(f"  移动鼠标到: ({abs_x}, {abs_y})")
             duration_ms = int(duration * 1000)  # 转换为毫秒
-            subprocess.run(["cliclick", f"-e", str(duration_ms), f"m:{x},{y}"], check=True, capture_output=True, text=True)
+            subprocess.run(["cliclick", f"-e", str(duration_ms), f"m:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
             
-            print(f"✓ 鼠标移动成功: ({x}, {y})")
+            print(f"✓ 鼠标移动成功: ({abs_x}, {abs_y})")
             return True
         except Exception as e:
             print(f"✗ 鼠标移动执行失败: {e}")
