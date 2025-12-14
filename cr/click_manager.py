@@ -10,9 +10,9 @@ class ClickManager:
     def __init__(self):
         self.config = SCREENSHOT_CONFIG
         self.wechat_process_name = self.config["wechat_process_name"]
-        # 皇室战争窗口区域配置
-        self.cr_window_region = self._get_cr_window_region()
-        print(f"皇室战争窗口区域初始化: {self.cr_window_region}")
+        # 皇室战争窗口区域配置 - 延迟初始化，需要时才计算
+        self.cr_window_region = None
+        # 移除初始化时的打印信息
     
     def _get_cr_window_region(self):
         """获取皇室战争的窗口区域，格式为(x, y, width, height)"""
@@ -54,6 +54,9 @@ class ClickManager:
     
     def get_cr_window_position(self):
         """获取皇室战争窗口的位置和大小"""
+        # 确保窗口区域已初始化
+        if self.cr_window_region is None:
+            self.cr_window_region = self._get_cr_window_region()
         x, y, width, height = self.cr_window_region
         return {
             "x": x,
@@ -136,6 +139,9 @@ end tell'''
         # 判断是否为百分比坐标（如果x或y在0-100范围内）
         if 0 <= x <= 100 and 0 <= y <= 100:
             print(f"  检测到百分比坐标: ({x}%, {y}%)")
+            # 确保皇室战争窗口区域已初始化
+            if self.cr_window_region is None:
+                self.cr_window_region = self._get_cr_window_region()
             # 获取皇室战争窗口区域
             cr_x, cr_y, cr_width, cr_height = self.cr_window_region
             # 转换为绝对坐标
@@ -179,12 +185,9 @@ end tell'''
             subprocess.run(["osascript", "-e", applescript], check=True, capture_output=True, text=True)
             time.sleep(0.1)
             
-            # 只使用cliclick执行点击
+            # 只使用cliclick执行点击，不需要先移动鼠标
             print(f"  使用cliclick点击位置: ({abs_x}, {abs_y})")
-            # 移动鼠标
-            subprocess.run(["cliclick", f"m:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
-            time.sleep(0.1)
-            # 执行点击
+            # 直接执行点击，cliclick的c:命令会自动定位到指定位置
             subprocess.run(["cliclick", f"c:{abs_x},{abs_y}"], check=True, capture_output=True, text=True)
             
             print(f"✓ 点击成功: ({abs_x}, {abs_y})")

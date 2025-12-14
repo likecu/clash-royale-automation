@@ -90,10 +90,9 @@ class ActionExecutor:
         # 模拟点击对战按钮
         if "对战按钮" in self.button_positions["战斗未开始"]:
             button_pos = self.button_positions["战斗未开始"]["对战按钮"]
-            print(f"  按钮配置坐标: {button_pos}")
-            # 计算实际点击位置
-            actual_x, actual_y = self._calculate_relative_position(button_pos)
-            return self.click_with_cliclick(actual_x, actual_y)  # 执行实际点击
+            print(f"  按钮配置坐标: {button_pos} (百分比坐标)")
+            # 直接使用ClickManager的click方法，它会自动处理百分比坐标转换
+            return self.click_with_cliclick(button_pos[0], button_pos[1])  # 执行实际点击
         return False
     
     def action_battle_in_progress(self):
@@ -109,10 +108,9 @@ class ActionExecutor:
         # 模拟点击确认按钮
         if "确认按钮" in self.button_positions["战斗结束"]:
             button_pos = self.button_positions["战斗结束"]["确认按钮"]
-            print(f"  按钮配置坐标: {button_pos}")
-            # 计算实际点击位置
-            actual_x, actual_y = self._calculate_relative_position(button_pos)
-            return self.click_with_cliclick(actual_x, actual_y)  # 执行实际点击
+            print(f"  按钮配置坐标: {button_pos} (百分比坐标)")
+            # 直接使用ClickManager的click方法，它会自动处理百分比坐标转换
+            return self.click_with_cliclick(button_pos[0], button_pos[1])  # 执行实际点击
         return False
     
     def action_opening_chest(self):
@@ -124,14 +122,12 @@ class ActionExecutor:
         
         if "开宝箱按钮" in self.button_positions["开宝箱"]:
             button_pos = self.button_positions["开宝箱"]["开宝箱按钮"]
-            print(f"  按钮配置坐标: {button_pos}")
-            # 计算实际点击位置
-            actual_x, actual_y = self._calculate_relative_position(button_pos)
+            print(f"  按钮配置坐标: {button_pos} (百分比坐标)")
             
             # 执行5次点击，每次间隔2秒
             for i in range(6):
                 print(f"  第 {i+1}/5 次点击")
-                self.click_with_cliclick(actual_x, actual_y)
+                self.click_with_cliclick(button_pos[0], button_pos[1])  # 直接使用百分比坐标
                 # 最后一次点击后不需要等待
                 if i < 4:
                     print("  等待2秒...")

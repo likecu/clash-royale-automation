@@ -18,17 +18,18 @@ class CRGameAutomation:
         # 按钮位置配置
         self.button_positions = BUTTON_CONFIG
     
-    def capture_and_analyze(self, prefix="weapp_auto", execute_action=False):
+    def capture_and_analyze(self, prefix="weapp_auto", execute_action=False, skip_bring_to_front=False):
         """截取屏幕并分析状态，可选择执行相应行为
         
         参数:
             prefix: 截图文件名前缀
             execute_action: 是否执行相应行为，默认不执行
+            skip_bring_to_front: 是否跳过窗口前置操作，用于连续截图优化
         """
         print("\n===== 开始捕获并分析屏幕 =====")
         
-        # 1. 截取屏幕
-        screenshot_path = self.screenshot_manager.auto_screenshot_weapp(prefix)
+        # 1. 截取屏幕 - 使用优化后的方法，支持跳过前置操作
+        screenshot_path = self.screenshot_manager.auto_screenshot_clash_royale(prefix, skip_bring_to_front=skip_bring_to_front)
         if not screenshot_path:
             print("✗ 截图失败，无法继续分析")
             return None, None
