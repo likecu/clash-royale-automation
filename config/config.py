@@ -3,7 +3,7 @@
 # 截图配置
 SCREENSHOT_CONFIG = {
     "wechat_process_name": "WeChat",
-    "weapp_relative_region": (0, 0, 400, 450),  # (相对x, 相对y, width, height)，相对于微信窗口左上角
+    "weapp_relative_region": (0, 0, 335, 640),  # (相对x, 相对y, width, height)，相对于微信窗口左上角
     "screenshot_dir": "png",
     "prefix": "weapp_auto"
 }

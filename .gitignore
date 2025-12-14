@@ -23,3 +23,8 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Test screenshots
+png/test_*.png
+png/weapp_batch_*.png
+png/test_continuous_*.png

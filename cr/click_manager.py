@@ -25,27 +25,36 @@ class ClickManager:
             wx_window = WeChatUtils.get_wechat_window_position()
             wx_x = wx_window["x"]
             wx_y = wx_window["y"]
+            wx_width = wx_window["width"]
+            wx_height = wx_window["height"]
             
-            # 从配置文件获取皇室战争小程序在微信窗口内的相对区域
+            # 从配置文件获取相对偏移量，忽略配置的宽度和高度
+            # 假设小程序占据微信窗口的主要内容区域
             weapp_relative_region = self.config["weapp_relative_region"]
-            rel_x, rel_y, rel_width, rel_height = weapp_relative_region
+            rel_x, rel_y, _, _ = weapp_relative_region
             
             # 动态计算皇室战争小程序的绝对区域
             # 微信窗口左上角为基准点，加上小程序在微信窗口内的相对位置
+            # 使用微信窗口的实际宽度和高度作为小程序的宽度和高度
             abs_x = wx_x + rel_x
             abs_y = wx_y + rel_y
-            width = rel_width
-            height = rel_height
+            width = wx_width - rel_x  # 考虑相对偏移后的实际宽度
+            height = wx_height - rel_y  # 考虑相对偏移后的实际高度
             
             return (abs_x, abs_y, width, height)
         except Exception as e:
             print(f"获取微信窗口信息失败: {e}")
             # 如果获取失败，使用默认值
             wx_x, wx_y = (400, 100)  # 默认窗口位置
+            wx_width, wx_height = (800, 600)  # 默认窗口大小
             weapp_relative_region = self.config["weapp_relative_region"]
-            rel_x, rel_y, rel_width, rel_height = weapp_relative_region
-            # 使用默认窗口位置和配置的相对区域
-            return (wx_x + rel_x, wx_y + rel_y, rel_width, rel_height)
+            rel_x, rel_y, _, _ = weapp_relative_region
+            # 使用默认窗口位置和实际大小
+            abs_x = wx_x + rel_x
+            abs_y = wx_y + rel_y
+            width = wx_width - rel_x
+            height = wx_height - rel_y
+            return (abs_x, abs_y, width, height)
     
     def update_cr_window_region(self):
         """更新皇室战争窗口区域"""
