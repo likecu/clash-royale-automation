@@ -21,7 +21,8 @@ def check_game_status():
     
     # 只执行一次检查
     # 捕获屏幕并分析状态
-    status, screenshot_path = auto.capture_and_analyze(True)
+    while True:
+        status, screenshot_path = auto.capture_and_analyze(execute_action=True)
     
     print(f"\n当前游戏状态: {status}")
     print(f"截图路径: {screenshot_path}")
