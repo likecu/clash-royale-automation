@@ -17,12 +17,38 @@ def record_click_positions():
     # 创建点击管理器实例
     click_manager = ClickManager()
     
-    # 更新皇室战争窗口区域
-    click_manager.update_cr_window_region()
+    # 初始化皇室战争窗口信息
+    cr_window = None
     
-    # 获取皇室战争窗口信息
-    cr_window = click_manager.get_cr_window_position()
-    print(f"皇室战争窗口区域: ({cr_window['x']}, {cr_window['y']}, {cr_window['width']}, {cr_window['height']})")
+    # 尝试自动获取皇室战争窗口区域
+    try:
+        print("\n正在尝试自动获取皇室战争窗口区域...")
+        click_manager.update_cr_window_region()
+        cr_window = click_manager.get_cr_window_position()
+        print(f"✓ 成功获取皇室战争窗口区域: ({cr_window['x']}, {cr_window['y']}, {cr_window['width']}, {cr_window['height']})")
+    except Exception as e:
+        print(f"✗ 自动获取窗口区域失败: {e}")
+        print("\n请手动输入皇室战争窗口区域信息：")
+        
+        # 手动输入窗口信息
+        try:
+            x = int(input("请输入窗口左上角X坐标: "))
+            y = int(input("请输入窗口左上角Y坐标: "))
+            width = int(input("请输入窗口宽度: "))
+            height = int(input("请输入窗口高度: "))
+            
+            cr_window = {
+                "x": x,
+                "y": y,
+                "width": width,
+                "height": height,
+                "right": x + width,
+                "bottom": y + height
+            }
+            print(f"✓ 手动设置窗口区域成功: ({x}, {y}, {width}, {height})")
+        except ValueError:
+            print("✗ 输入无效，程序退出")
+            return
     
     # 初始化点击位置列表
     click_positions = []
@@ -50,22 +76,18 @@ def record_click_positions():
                     click_x = int(coords[0])
                     click_y = int(coords[1])
                     
-                    # 检查点击位置是否在皇室战争窗口内
-                    if click_manager.is_position_in_cr_window(click_x, click_y):
-                        # 计算相对于皇室战争窗口的百分比坐标
-                        rel_x = (click_x - cr_window['x']) / cr_window['width'] * 100
-                        rel_y = (click_y - cr_window['y']) / cr_window['height'] * 100
-                        
-                        # 保存到列表
-                        click_positions.append((rel_x, rel_y))
-                        
-                        # 打印结果
-                        print(f"✓ 位置记录成功：")
-                        print(f"  绝对坐标：({click_x}, {click_y})")
-                        print(f"  百分比坐标：({rel_x:.2f}%, {rel_y:.2f}%)")
-                        print(f"  坐标列表：{[(f'{x:.2f}%', f'{y:.2f}%') for x, y in click_positions]}")
-                    else:
-                        print(f"✗ 鼠标位置({click_x}, {click_y})不在皇室战争窗口内，已忽略")
+                    # 计算相对于皇室战争窗口的百分比坐标
+                    rel_x = (click_x - cr_window['x']) / cr_window['width'] * 100
+                    rel_y = (click_y - cr_window['y']) / cr_window['height'] * 100
+                    
+                    # 保存到列表
+                    click_positions.append((rel_x, rel_y))
+                    
+                    # 打印结果
+                    print(f"✓ 位置记录成功：")
+                    print(f"  绝对坐标：({click_x}, {click_y})")
+                    print(f"  百分比坐标：({rel_x:.2f}%, {rel_y:.2f}%)")
+                    print(f"  坐标列表：{[(f'{x:.2f}%', f'{y:.2f}%') for x, y in click_positions]}")
                 except ValueError:
                     print(f"✗ 无法解析鼠标位置：{output}")
             else:

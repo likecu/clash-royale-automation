@@ -97,9 +97,33 @@ class ActionExecutor:
     
     def action_battle_in_progress(self):
         """战斗中状态的行为"""
-        print("[智能行为] 战斗进行中 - 可以发送表情或执行战斗操作")
-        # 这里可以添加战斗中的智能操作
-        # 例如：自动发送表情、使用卡牌等
+        print("[智能行为] 战斗进行中 - 执行战斗中按钮点击序列")
+        # 战斗中按钮点击序列，按照指定顺序点击
+        button_sequence = [
+            "战斗中按钮1",
+            "战斗中按钮2", 
+            "战斗中按钮3",
+            "战斗中按钮4",
+            "战斗中按钮5",
+            "战斗中按钮6"
+        ]
+        
+        if "战斗中" in self.button_positions:
+            battle_buttons = self.button_positions["战斗中"]
+            
+            for i, button_name in enumerate(button_sequence, 1):
+                if button_name in battle_buttons:
+                    button_pos = battle_buttons[button_name]
+                    print(f"  [{i}/{len(button_sequence)}] 点击 {button_name}: {button_pos}")
+                    # 使用click_with_cliclick方法执行点击，它会自动处理百分比坐标转换
+                    self.click_with_cliclick(button_pos[0], button_pos[1])
+                    # 每次点击后延迟1秒，最后一次点击后不需要延迟
+                    if i < len(button_sequence):
+                        print("  等待1秒...")
+                        time.sleep(1)
+                else:
+                    print(f"  [警告] 按钮 {button_name} 不存在于配置中")
+        
         return True
     
     def action_battle_ended(self):
