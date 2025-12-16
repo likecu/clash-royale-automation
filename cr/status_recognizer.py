@@ -121,10 +121,22 @@ class StatusRecognizer:
                 # 使用简单模板匹配算法获取页面相似度
                 page_similarity = ImageUtils.simple_template_matching(screenshot_gray, template)
                 
-                # 综合考虑页面相似度和按钮相似度，按钮权重更高
+                # 综合考虑页面相似度和按钮相似度，根据状态调整权重
                 button_similarity = button_similarities[status]
-                # 页面权重0.5，按钮权重0.5
-                similarity = (page_similarity * 0.5) + (button_similarity * 0.5)
+                
+                # 为不同状态设置不同的权重分配
+                if status == "战斗中":
+                    # 战斗中状态：提高页面权重，降低按钮权重，减少误判
+                    similarity = (page_similarity * 0.8) + (button_similarity * 0.2)
+                elif status == "战斗结束":
+                    # 战斗结束状态：提高页面权重，降低按钮权重
+                    similarity = (page_similarity * 0.9) + (button_similarity * 0.1)
+                elif status == "战斗未开始":
+                    # 战斗未开始状态：提高页面权重，降低按钮权重
+                    similarity = (page_similarity * 0.9) + (button_similarity * 0.1)
+                else:
+                    # 其他状态：保持原有权重
+                    similarity = (page_similarity * 0.4) + (button_similarity * 0.6)
                 
                 print(f"状态比较: {status} -> 页面相似度: {page_similarity:.4f}, 按钮相似度: {button_similarity:.4f}, 综合相似度: {similarity:.4f}")
                 
@@ -137,9 +149,9 @@ class StatusRecognizer:
             if best_status:
                 # 为不同状态设置不同的阈值
                 status_thresholds = {
-                    "战斗结束": 0.60,  # 降低战斗结束状态的阈值
-                    "战斗中": 0.65,
-                    "战斗未开始": 0.65,
+                    "战斗结束": 0.53,  # 降低战斗结束状态的阈值，提高识别率
+                    "战斗中": 0.54,   # 降低战斗中状态的阈值，提高识别率
+                    "战斗未开始": 0.54,  # 降低战斗未开始状态的阈值，提高识别率
                     "开宝箱": 0.65
                 }
                 

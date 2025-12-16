@@ -29,8 +29,8 @@ def main():
     for screenshot_path in screenshot_paths:
         screenshot_file = os.path.basename(screenshot_path)
         
-        # 预期状态（从文件名提取）
-        expected_status = screenshot_file.split(".")[0]
+        # 预期状态（从文件夹结构提取）
+        expected_status = os.path.basename(os.path.dirname(screenshot_path))
         
         # 识别状态
         status, similarity = recognizer.process_screenshot(screenshot_path)
