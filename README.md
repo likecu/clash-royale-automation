@@ -23,8 +23,16 @@
 │   ├── 战斗未开始/     # 战斗未开始状态图片
 │   ├── 战斗中/         # 战斗中状态图片
 │   ├── 战斗结束/       # 战斗结束状态图片
-│   └── 开宝箱/         # 开宝箱状态图片
+│   ├── 开宝箱/         # 开宝箱状态图片
+│   └── 实际游戏截图/    # 实际游戏截图，按状态分类
+│       ├── 战斗中/     # 实际战斗中截图
+│       ├── 战斗未开始/ # 实际战斗未开始截图
+│       ├── 战斗结束/   # 实际战斗结束截图
+│       └── 其他/       # 其他实际游戏截图
 ├── main.py             # 主入口文件
+├── extract_elixir.py   # 圣水数量提取脚本
+├── test_elixir_extraction.py  # 圣水提取测试脚本
+├── verify_elixir_region.py    # 圣水区域验证脚本
 ├── .gitignore          # Git忽略文件
 └── README.md           # 项目说明文档
 ```
@@ -65,6 +73,23 @@
 - 图像处理工具：图片预处理、相似度比较、模板匹配
 - 系统工具：AppleScript执行、时间戳生成、目录管理
 - 微信工具：微信窗口置顶、微信窗口位置获取
+
+### 8. 圣水数量提取脚本 (extract_elixir.py)
+- 批量处理战斗截图，提取圣水数量
+- 调用豆包OCR工具识别每张图片中的圣水数量
+- 使用正则表达式提取纯净的圣水数量
+- 支持单张图片测试和批量处理
+- 将识别结果保存到JSON文件
+
+### 9. 圣水提取测试脚本 (test_elixir_extraction.py)
+- 测试圣水数量提取功能
+- 验证不同场景下的识别准确率
+- 提供测试用例和结果验证
+
+### 10. 圣水区域验证脚本 (verify_elixir_region.py)
+- 验证圣水区域的识别准确性
+- 提供圣水区域可视化功能
+- 辅助调整OCR识别区域
 
 ## 配置说明
 
@@ -155,6 +180,26 @@ marked_files = cr_automation.mark_all_buttons()
 cr_automation.verify_marked_buttons(marked_files)
 ```
 
+### 圣水数量提取功能
+
+#### 1. 批量处理战斗截图
+```bash
+# 处理所有战斗中截图，提取圣水数量
+/Volumes/600g/app1/okx-py/bin/python3 extract_elixir.py
+```
+
+#### 2. 单张图片测试
+```bash
+# 处理单张图片，提取圣水数量
+/Volumes/600g/app1/okx-py/bin/python3 extract_elixir.py <图片绝对路径>
+```
+
+#### 3. 示例
+```bash
+# 处理单张战斗中截图
+/Volumes/600g/app1/okx-py/bin/python3 extract_elixir.py png/实际游戏截图/战斗中/战斗中.png
+```
+
 ### 功能示例
 
 #### 1. 实时截图和智能分析
@@ -182,6 +227,23 @@ from cr import CRGameAutomation
 cr_automation = CRGameAutomation()
 # 在截图上标记按钮
 marked_path = cr_automation.mark_button_on_screenshot("png/战斗未开始/初始页面.png", "战斗未开始")
+```
+
+#### 4. 圣水数量提取
+```python
+import subprocess
+
+# 调用圣水提取脚本处理单张图片
+result = subprocess.run(
+    [
+        '/Volumes/600g/app1/okx-py/bin/python3',
+        'extract_elixir.py',
+        'png/实际游戏截图/战斗中/战斗中.png'
+    ],
+    capture_output=True,
+    text=True
+)
+print(result.stdout)
 ```
 
 ## 扩展开发
