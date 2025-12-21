@@ -1,31 +1,29 @@
-# IDE
-.idea/
-.vscode/
-.trae/
+# 输出目录
+cards/
+yolo/
+test_cards/
+cr_check_png/
 
-# Virtual Environment
-.venv/
-venv/
-env/
+# 结果文件
+elixir_results.json
+*_ocr_result.txt
 
-# Python
-__pycache__/
+# 模型文件
+yolov8n.pt
+
+# 临时文件
 *.pyc
-*.pyo
-*.pyd
+__pycache__/
 
-# Mac
-.DS_Store
-
-# Logs
-logs/
+# 日志文件
 *.log
 
-# Temporary files
-*.tmp
-*.temp
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Test screenshots
-png/test_*.png
-png/weapp_batch_*.png
-png/test_continuous_*.png
+# 操作系统文件
+.DS_Store
+Thumbs.db
