@@ -125,7 +125,7 @@ class ButtonMarker:
     def verify_with_doubao(self, image_path):
         """使用豆包验证按钮位置是否正确"""
         # 使用用户提供的OCR工具调用豆包
-        ocr_cmd = f"/Volumes/600g/app1/okx-py/bin/python3 /Volumes/600g/app1/doubao获取/python/doubao_ocr.py {image_path} --question '图片中红色边框标记的位置是否是按钮？请回答是或否。'"
+        ocr_cmd = f"/Users/aaa/python-sdk/python3.13.2/bin/python /Volumes/600g/app1/doubao获取/python/gemini_ocr.py {image_path} --question '图片中红色边框标记的位置是否是按钮？请回答是或否。'"
         
         print(f"\n调用豆包验证: {image_path}")
         print(f"执行命令: {ocr_cmd}")

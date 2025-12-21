@@ -6,8 +6,8 @@ import json
 import re
 
 # 设置虚拟环境Python路径和OCR脚本路径
-PYTHON_PATH = '/Volumes/600g/app1/okx-py/bin/python3'
-OCR_SCRIPT = '/Volumes/600g/app1/doubao获取/python/doubao_ocr.py'
+PYTHON_PATH = '/Users/aaa/python-sdk/python3.13.2/bin/python'
+OCR_SCRIPT = '/Volumes/600g/app1/doubao获取/python/gemini_ocr.py'
 IMAGE_DIR = '/Volumes/600g/app1/皇室战争/png/实际游戏截图/战斗中'
 RESULT_FILE = '/Volumes/600g/app1/皇室战争/elixir_results.json'
 
@@ -16,43 +16,31 @@ def extract_pure_elixir(ocr_result):
     # 查找回答部分
     answer_start = ocr_result.find('回答: ')
     if answer_start == -1:
-        return '未找到回答'
+        return 0
     
     answer = ocr_result[answer_start + 4:]
     
-    # 使用正则表达式提取数字
-    # 匹配多种不同的表述方式，简化正则表达式，避免引号转义问题
-    patterns = [
-        r'圣水数量是\s*(\d+)',
-        r'圣水是\s*(\d+)',
-        r'(\d+)\s*圣水',
-        r'当前的圣水数量是\s*(\d+)',
-        r'显示当前的圣水数量是\s*(\d+)',
-        r'当前圣水数量是\s*(\d+)',
-        r'当前圣水数量显示为\s*(\d+)',
-        r'底部显示当前圣水数量是\s*(\d+)',
-        r'底部显示当前的圣水数量是\s*(\d+)',
-        r'数值是\s*(\d+)',
-        r'当前圣水数量为\s*(\d+)',
-        r'圣水数量为\s*(\d+)',
-        r'显示的圣水数量是\s*(\d+)',
-        r'底部的圣水显示区域显示当前圣水数量是\s*(\d+)',
-        r'底部的圣水显示区域明确标注了当前圣水数量为\s*(\d+)',
-        r'底部圣水显示区域的数值是\s*(\d+)',
-        r'底部可以看到，当前圣水数量显示为\s*(\d+)',
-        r'显示为\s*(\d+)',
-        r'当前圣水\s*(\d+)',
-        r'显示的数值是\s*(\d+)',
-        r'显示为\s*(\d+)\s*，',
-        r'显示为\s*(\d+)\s*\('
-    ]
+    # 尝试解析JSON格式的回答
+    try:
+        import json
+        result = json.loads(answer)
+        if isinstance(result, dict) and 'elixir_count' in result:
+            elixir_count = result['elixir_count']
+            if isinstance(elixir_count, int):
+                return elixir_count
+            # 如果是字符串类型的数字，尝试转换为整数
+            elif isinstance(elixir_count, str) and elixir_count.isdigit():
+                return int(elixir_count)
+    except (json.JSONDecodeError, ValueError):
+        # JSON解析失败，尝试使用正则表达式提取数字作为备选方案
+        import re
+        # 从回答中提取数字
+        number_match = re.search(r'\b(\d+)\b', answer)
+        if number_match:
+            return int(number_match.group(1))
     
-    for pattern in patterns:
-        match = re.search(pattern, answer)
-        if match:
-            return match.group(1)
-    
-    return '未识别到圣水数量'
+    # 如果所有方法都失败，返回默认值0
+    return 0
 
 # 识别单张图片的圣水数量
 def process_single_image(image_path):
@@ -61,7 +49,7 @@ def process_single_image(image_path):
     # 调用OCR工具提取圣水数量
     try:
         result = subprocess.run(
-            [PYTHON_PATH, OCR_SCRIPT, image_path, '--question', '图中的圣水数量是多少？'],
+            [PYTHON_PATH, OCR_SCRIPT, image_path, '--question', '图中的皇室战争游戏的当前拥有的圣水数量是多少？请输出标准JSON格式，键为elixir_count，值为整数类型的圣水数量，如果无法识别则值为0，例如：{"elixir_count": 10}'],
             capture_output=True,
             text=True,
             check=True

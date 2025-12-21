@@ -8,8 +8,8 @@ def main():
     print("皇室战争游戏自动化工具")
     print("=" * 30)
     
-    # 创建自动化工具实例
-    cr_automation = CRGameAutomation()
+    # 创建自动化工具实例（启用YOLO功能）
+    cr_automation = CRGameAutomation(use_yolo=True)
     
     # 演示1: 批量分析现有截图
     print("\n1. 批量分析现有截图")
@@ -25,6 +25,29 @@ def main():
     print("\n3. 在截图上标记按钮")
     cr_automation.mark_button_on_screenshot(test_screenshot, "战斗未开始")
     
+    # 演示4: YOLO战斗分析功能
+    print("\n4. YOLO战斗分析功能演示")
+    
+    # 查找战斗中的截图
+    battle_screenshots = []
+    battle_dir = "png/战斗中"
+    if os.path.exists(battle_dir):
+        for file in os.listdir(battle_dir):
+            if file.endswith(".png") and not file.endswith("_detection.png"):
+                battle_screenshots.append(os.path.join(battle_dir, file))
+    
+    if battle_screenshots:
+        # 使用第一个战斗截图进行演示
+        battle_screenshot = battle_screenshots[0]
+        print(f"\n使用战斗截图: {battle_screenshot}")
+        
+        # 分析战斗截图并给出下兵建议
+        best_position = cr_automation.analyze_battle_screenshot(battle_screenshot)
+        if best_position:
+            print(f"✓ 推荐下兵位置: {best_position}")
+    else:
+        print("✗ 未找到战斗中的截图，无法演示YOLO功能")
+    
     print("\n演示完成！")
     print("\n使用方法:")
     print("- 执行 capture_and_analyze() 进行实时截图和智能分析")
@@ -33,6 +56,8 @@ def main():
     print("- 执行 mark_button_on_screenshot() 在截图上标记按钮")
     print("- 执行 mark_all_buttons() 标记所有场景的按钮")
     print("- 执行 verify_marked_buttons() 验证标记的按钮位置")
+    print("- 执行 analyze_battle_screenshot() 分析战斗截图并给出下兵建议")
+    print("- 执行 capture_battle_and_analyze() 实时捕获战斗画面并分析下兵位置")
 
 if __name__ == "__main__":
     main()

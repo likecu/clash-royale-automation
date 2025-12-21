@@ -87,7 +87,7 @@ BUTTON_MARK_CONFIG = {
 
 # 豆包OCR配置
 DOUBAO_OCR_CONFIG = {
-    "ocr_script_path": "/Volumes/600g/app1/doubao获取/python/doubao_ocr.py",
+    "ocr_script_path": "/Volumes/600g/app1/doubao获取/python/gemini_ocr.py",
     "node_script_path": "/Volumes/600g/app1/doubao获取/test_upload_image.js",
-    "python_path": "/Volumes/600g/app1/okx-py/bin/python3"
+    "python_path": "/Users/aaa/python-sdk/python3.13.2/bin/python"
 }

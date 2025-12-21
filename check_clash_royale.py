@@ -3,8 +3,8 @@ import os
 import subprocess
 
 # 配置信息
-OCR_SCRIPT = "/Volumes/600g/app1/doubao获取/python/doubao_ocr.py"
-PYTHON_PATH = "/Volumes/600g/app1/okx-py/bin/python3"
+OCR_SCRIPT = "/Volumes/600g/app1/doubao获取/python/gemini_ocr.py"
+PYTHON_PATH = "/Users/aaa/python-sdk/python3.13.2/bin/python"
 
 # 创建截图目录
 if not os.path.exists('cr_check_png'):

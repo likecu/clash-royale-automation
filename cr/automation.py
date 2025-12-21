@@ -2,6 +2,7 @@ from cr.screenshot import ScreenshotManager
 from cr.status_recognizer import StatusRecognizer
 from cr.action_executor import ActionExecutor
 from cr.button_marker import ButtonMarker
+from cr.yolo_detector import YoloDetector
 from PIL import Image, ImageDraw
 import os
 from config.config import BUTTON_CONFIG
@@ -9,12 +10,19 @@ from config.config import BUTTON_CONFIG
 class CRGameAutomation:
     """皇室战争游戏自动化工具，整合截图、状态识别和操作执行功能"""
     
-    def __init__(self):
+    def __init__(self, use_yolo=True):
+        """初始化自动化工具"""
         # 初始化各个模块
         self.screenshot_manager = ScreenshotManager()
         self.status_recognizer = StatusRecognizer()
         self.action_executor = ActionExecutor()
         self.button_marker = ButtonMarker()
+        
+        # 初始化YOLO检测器
+        self.use_yolo = use_yolo
+        if use_yolo:
+            self.yolo_detector = YoloDetector()
+        
         # 按钮位置配置
         self.button_positions = BUTTON_CONFIG
     
@@ -141,3 +149,100 @@ class CRGameAutomation:
     def verify_marked_buttons(self, marked_files):
         """验证标记的按钮位置"""
         return self.button_marker.verify_all_marked_files(marked_files)
+    
+    def detect_battle_elements(self, screenshot_path):
+        """检测战斗画面中的元素
+        
+        参数:
+            screenshot_path: 战斗截图路径
+            
+        返回:
+            detected_elements: 检测到的战斗元素
+        """
+        if not self.use_yolo:
+            print("✗ YOLO功能未启用")
+            return None
+        
+        return self.yolo_detector.detect_game_elements(screenshot_path)
+    
+    def calculate_best_deploy_position(self, screenshot_path):
+        """计算最佳下兵位置
+        
+        参数:
+            screenshot_path: 战斗截图路径
+            
+        返回:
+            best_position: 最佳下兵位置 (x, y)
+        """
+        if not self.use_yolo:
+            print("✗ YOLO功能未启用")
+            return None
+        
+        # 检测游戏元素
+        detected_elements = self.detect_battle_elements(screenshot_path)
+        if not detected_elements:
+            return None
+        
+        # 获取图片形状
+        import cv2
+        image = cv2.imread(screenshot_path)
+        if image is None:
+            print(f"✗ 无法加载图片: {screenshot_path}")
+            return None
+        
+        # 计算最佳下兵位置
+        best_position = self.yolo_detector.calculate_best_deploy_position(detected_elements, image.shape)
+        print(f"✓ 最佳下兵位置计算完成: {best_position}")
+        
+        return best_position
+    
+    def analyze_battle_screenshot(self, screenshot_path, output_path=None):
+        """分析战斗截图并给出下兵建议
+        
+        参数:
+            screenshot_path: 战斗截图路径
+            output_path: 可视化结果输出路径
+            
+        返回:
+            best_position: 最佳下兵位置
+        """
+        if not self.use_yolo:
+            print("✗ YOLO功能未启用")
+            return None
+        
+        print(f"\n===== 开始分析战斗截图: {screenshot_path} =====")
+        
+        # 检测并可视化结果
+        best_position = self.yolo_detector.detect_and_visualize(screenshot_path, output_path)
+        
+        print("===== 战斗截图分析完成 =====")
+        return best_position
+    
+    def capture_battle_and_analyze(self, prefix="battle_auto"):
+        """捕获战斗画面并分析，给出下兵建议
+        
+        参数:
+            prefix: 截图文件名前缀
+            
+        返回:
+            best_position: 最佳下兵位置
+        """
+        print("\n===== 开始捕获战斗画面 =====")
+        
+        # 截取屏幕
+        screenshot_path = self.screenshot_manager.auto_screenshot_clash_royale(prefix)
+        if not screenshot_path:
+            print("✗ 截图失败，无法继续分析")
+            return None
+        
+        # 识别状态
+        status, similarity = self.status_recognizer.recognize_status(screenshot_path)
+        
+        if status == "战斗中":
+            print(f"✓ 识别为战斗状态，开始分析下兵位置")
+            # 分析战斗截图
+            best_position = self.analyze_battle_screenshot(screenshot_path)
+            return best_position
+        else:
+            print(f"✗ 当前不是战斗状态: {status}")
+            return None
