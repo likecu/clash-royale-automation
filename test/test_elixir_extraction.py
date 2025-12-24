@@ -2,14 +2,14 @@ import os
 import sys
 
 # 添加项目根目录到Python路径
-sys.path.append('/Volumes/600g/app1/皇室战争')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from check_clash_royale import extract_elixir
 
 # 测试实际游戏截图
 def test_actual_screenshots():
     # 实际游戏截图目录
-    screenshots_dir = '/Volumes/600g/app1/皇室战争/png/实际游戏截图/战斗中'
+    screenshots_dir = 'png/实际游戏截图/战斗中'
     
     print(f"\n=== 开始测试实际游戏截图中的圣水数量 ===")
     print(f"测试目录: {screenshots_dir}")
